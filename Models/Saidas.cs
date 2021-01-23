@@ -2,11 +2,11 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebApi.Models
+namespace Back.Models
 {
-
-  [Table("Saidas")]
-  public class Saidas
+    [Table("Saidas")]
+    
+    public class Saidas
   {
     [Key]
     public int? ID_Empresa { get; set; }
@@ -17,7 +17,7 @@ namespace WebApi.Models
     public DateTime? DtHor_Saida { get; set; }
     public string Usuario_Saida { get; set; }
 
-    [Required(ErrorMessage = "CÃ³d. Cliente Ã© ObrigatÃ³rio")]
+    [Required(ErrorMessage = "Cód. Cliente é Obrigatório")]
     public int? id_cliente { get; set; }
 
   }

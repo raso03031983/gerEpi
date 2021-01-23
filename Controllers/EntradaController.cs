@@ -1,128 +1,57 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Back.Models;
+using Back.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using WebApi.Data;
-using WebApi.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-[Route("v1/entradas")]
-public class EntradaController : Controller
+namespace Back.Controllers
 {
+    [Route("Entrada")]
+    [ApiController]
+    public class EntradaController : Controller
+    {
+        private readonly IEntradaServices _services;
 
-  // [Authorize]
-  [HttpGet]
-  [Route("{idCliente:int}")]
-  public async Task<ActionResult<List<Entrada>>> Get(int idCliente, [FromServices] DataContext context)
-  {
-    try
-    {
-      var item = await context.Entradas.Where(x => x.id_cliente == idCliente).AsNoTracking().ToListAsync();
-      return Ok(item);
-    }
-    catch (Exception error)
-    {
-      return BadRequest(error);
-    }
-  }
-
-  [HttpGet]
-  [Route("GetById/{id:int}/{idCliente:int}")]
-  public async Task<ActionResult<Entrada>> GetById(int idCliente, int idEmpresa, int idSubEquipamento, int idOperacao, [FromServices] DataContext context)
-  {
-    try
-    {
-      var item = await context.Entradas.AsNoTracking().FirstOrDefaultAsync(x => x.ID_Empresa == idEmpresa &&
-                                                                                x.ID_SubEquipamento == idSubEquipamento &&
-                                                                                x.ID_Operacao == idOperacao &&
-                                                                                x.id_cliente == idCliente);
-      if (item == null)
-      {
-        return NotFound("Item não encontrado");
-      }
-      else
-      {
-        return Ok(item);
-      }
-    }
-    catch (Exception error)
-    {
-
-      return BadRequest(new { message = error.Message });
-    }
-
-  }
-
-  [HttpPost]
-  [Route("")]
-  public async Task<ActionResult<Entrada>> Post([FromBody] Entrada model, [FromServices] DataContext context)
-  {
-    if (!ModelState.IsValid)
-    {
-      return BadRequest(ModelState);
-    }
-    else
-    {
-      try
-      {
-        context.Entradas.Add(model);
-        await context.SaveChangesAsync();
-        return Ok(model);
-      }
-      catch (Exception error)
-      {
-        return BadRequest(new { message = error.Message });
-      }
-    }
-  }
-
-  [HttpPut]
-  [Route("{id:int}")]
-  public async Task<ActionResult<Entrada>> Put([FromBody] Entrada model, [FromServices] DataContext context)
-  {
-    try
-    {
-      context.Entry<Entrada>(model).State = EntityState.Modified;
-      await context.SaveChangesAsync();
-      return Ok(model);
-
-    }
-    catch (DbUpdateConcurrencyException)
-    {
-      return BadRequest(new { message = "Item esta sendo atualizado neste momento, tente mais tarde" });
-    }
-    catch (Exception error)
-    {
-      return BadRequest(new { message = error.Message });
-    }
-  }
+        public EntradaController(IEntradaServices services)
+        {
+            _services = services;
+        }
 
 
-  [HttpDelete]
-  [Route("{id:int}")]
-  public async Task<ActionResult<Entrada>> Delete(int idEmpresa, int idSubEquipamento, char idOperacao, [FromServices] DataContext context)
-  {
+        [HttpGet]
+        [Route("Get")]
+        public async Task<ActionResult<List<Entrada>>> Get(string desc, int idItem, int id_cliente)
+        {
+            var item = await _services.GetAll(desc, idItem, id_cliente);
 
-    var item = await context.Entradas.FirstOrDefaultAsync(x => x.ID_Empresa == idEmpresa &&
-                                                               x.ID_SubEquipamento == idSubEquipamento &&
-                                                               x.ID_Operacao == idOperacao);
-    if (item == null)
-    {
-      return NotFound("Item não encontrado");
-    }
+            return Ok(item);
+        }
 
-    try
-    {
-      context.Entradas.Remove(item);
-      await context.SaveChangesAsync();
-      return Ok(new { message = "Transação Realizada" });
-    }
-    catch (Exception error)
-    {
+        [HttpPost]
+        [Route("Post")]
+        public async Task<ActionResult<string>> Post(Entrada model)
+        {
+            var resp = await _services.Post(model);
 
-      return BadRequest(new { message = error.Message });
+            return Ok(resp);
+        }
+
+        [HttpPut]
+        [Route("Put")]
+        public async Task<ActionResult<string>> Put(Entrada model)
+        {
+            var resp =  await _services.Put(model);
+            
+            return Ok(resp);
+        }
+
+        [HttpDelete]
+        [Route("Delete")]
+        public async Task<ActionResult<string>> Delete(Entrada model)
+        {
+            var resp = await _services.Delete(model);
+
+            return Ok(resp);
+        }
     }
-  }
 }

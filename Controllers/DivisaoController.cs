@@ -1,129 +1,62 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Back.Models;
+using Back.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using WebApi.Data;
-using WebApi.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-[Route("v1/divisao")]
-public class DivisaoController : Controller
+namespace Back.Controllers
 {
+    [Route("Divisao")]
+    [ApiController]
+    public class DivisaoController : Controller
+    {
+        private readonly IDivisaoServices _services;
 
-  // [Authorize]
-  [HttpGet]
-  [Route("{idCliente:int}")]
-  public async Task<ActionResult<List<Divisao>>> Get(int idCliente, [FromServices] DataContext context)
-  {
-    try
-    {
-      var item = await context.Divisoes.Where(x => x.id_cliente == idCliente).AsNoTracking().ToListAsync();
-      return Ok(item);
-    }
-    catch (Exception error)
-    {
-      return BadRequest(error);
-    }
-  }
-
-  [HttpGet]
-  [Route("GetById/{id:int}/{idCliente:int}")]
-  public async Task<ActionResult<Divisao>> GetById(int id, int idCliente, [FromServices] DataContext context)
-  {
-    try
-    {
-      var item = await context.Divisoes.AsNoTracking().FirstOrDefaultAsync(x => x.id == id && x.id_cliente == idCliente);
-      if (item == null)
-      {
-        return NotFound("Item não encontrado");
-      }
-      else
-      {
-        return Ok(item);
-      }
-    }
-    catch (Exception error)
-    {
-
-      return BadRequest(new { message = error.Message });
-    }
-
-  }
-
-  [HttpPost]
-  [Route("")]
-  public async Task<ActionResult<Divisao>> Post([FromBody] Divisao model, [FromServices] DataContext context)
-  {
-    if (!ModelState.IsValid)
-    {
-      return BadRequest(ModelState);
-    }
-    else
-    {
-      try
-      {
-        context.Divisoes.Add(model);
-        await context.SaveChangesAsync();
-        return Ok(model);
-      }
-      catch (Exception error)
-      {
-        return BadRequest(new { message = error.Message });
-      }
-    }
-  }
-
-  [HttpPut]
-  [Route("{id:int}")]
-  public async Task<ActionResult<Divisao>> Put(int id, [FromBody] Divisao model, [FromServices] DataContext context)
-  {
-    try
-    {
-      if (model.id == id)
-      {
-        context.Entry<Divisao>(model).State = EntityState.Modified;
-        await context.SaveChangesAsync();
-        return Ok(model);
-      }
-      else
-      {
-        return NotFound(new { message = "Item não encontrado" });
-      }
-    }
-    catch (DbUpdateConcurrencyException)
-    {
-      return BadRequest(new { message = "Item esta sendo atualizado neste momento, tente mais tarde" });
-    }
-    catch (Exception error)
-    {
-      return BadRequest(new { message = error.Message });
-    }
-  }
+        public DivisaoController(IDivisaoServices services)
+        {
+            _services = services;
+        }
 
 
-  [HttpDelete]
-  [Route("{id:int}")]
-  public async Task<ActionResult<Divisao>> Delete(int id, [FromServices] DataContext context)
-  {
+        [HttpPost]
+        [Route("Get")]
+        public async Task<ActionResult<List<Divisao>>> Get(Divisao model)
+        {
 
-    var item = await context.Divisoes.FirstOrDefaultAsync(x => x.id == id);
-    if (item == null)
-    {
-      return NotFound("Item não encontrado");
-    }
+            if (model.id_cliente < 1) {
+                return NotFound("Código Cliente é obrigatório");
+            }
 
-    try
-    {
-      context.Divisoes.Remove(item);
-      await context.SaveChangesAsync();
-      return Ok(new { message = "Transação Realizada" });
-    }
-    catch (Exception error)
-    {
+            var item = await _services.GetAll(model.id, model.Descricao_Divisao, model.id_cliente);
 
-      return BadRequest(new { message = error.Message });
+            return Ok(item);
+        }
+
+        [HttpPost]
+        [Route("Post")]
+        public async Task<ActionResult<string>> Post(Divisao model)
+        {
+            var resp = await _services.Post(model);
+
+            return Ok(resp);
+        }
+
+        [HttpPut]
+        [Route("Put")]
+        public async Task<ActionResult<string>> Put(Divisao model)
+        {
+            var resp =  await _services.Put(model);
+            
+            return Ok(resp);
+        }
+
+        [HttpDelete]
+        [Route("Delete/{id}")]
+        public async Task<ActionResult<string>> Delete(int id)
+        {
+            var resp = await _services.Delete(id);
+
+            return Ok(resp);
+        }
     }
-  }
 }

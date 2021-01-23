@@ -1,127 +1,56 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Back.Models;
+using Back.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using WebApi.Data;
-using WebApi.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-[Route("v1/fornecedores")]
-public class FornecedorController : Controller
+namespace Back.Controllers
 {
+    [Route("Fornecedor")]
+    [ApiController]
+    public class FornecedorController : Controller
+    {
+        private readonly IFornecedorServices _services;
 
-  // [Authorize]
-  [HttpGet]
-  [Route("{idCliente:int}")]
-  public async Task<ActionResult<List<Fornecedor>>> Get(int idCliente, [FromServices] DataContext context)
-  {
-    try
-    {
-      var item = await context.Fornecedores.Where(x => x.id_cliente == idCliente).AsNoTracking().ToListAsync();
-      return Ok(item);
-    }
-    catch (Exception error)
-    {
-      return BadRequest(error);
-    }
-  }
+        public FornecedorController(IFornecedorServices services)
+        {
+            _services = services;
+        }
 
-  [HttpGet]
-  [Route("GetById/{id:int}/{idCliente:int}")]
-  public async Task<ActionResult<Fornecedor>> GetById(int id, int idCliente, [FromServices] DataContext context)
-  {
-    try
-    {
-      var item = await context.Fornecedores.AsNoTracking().FirstOrDefaultAsync(x => x.id == id && x.id_cliente == idCliente);
-      if (item == null)
-      {
-        return NotFound("Item não encontrado");
-      }
-      else
-      {
-        return Ok(item);
-      }
-    }
-    catch (Exception error)
-    {
-      return BadRequest(new { message = error.Message });
-    }
-  }
+        [HttpPost]
+        [Route("Get")]
+        public async Task<ActionResult<List<Fornecedor>>> Get(Fornecedor model)
+        {
+            var item = await _services.GetAll(model.Nome_Fantasia, model.id_cliente);
 
-  [HttpPost]
-  [Route("")]
-  public async Task<ActionResult<Fornecedor>> Post([FromBody] Fornecedor model, [FromServices] DataContext context)
-  {
-    if (!ModelState.IsValid)
-    {
-      return BadRequest(ModelState);
-    }
-    else
-    {
-      try
-      {
-        context.Fornecedores.Add(model);
-        await context.SaveChangesAsync();
-        return Ok(model);
-      }
-      catch (Exception error)
-      {
-        return BadRequest(new { message = error.Message });
-      }
-    }
-  }
+            return Ok(item);
+        }
 
-  [HttpPut]
-  [Route("{id:int}")]
-  public async Task<ActionResult<Fornecedor>> Put(int id, [FromBody] Fornecedor model, [FromServices] DataContext context)
-  {
-    try
-    {
-      if (model.id == id)
-      {
-        context.Entry<Fornecedor>(model).State = EntityState.Modified;
-        await context.SaveChangesAsync();
-        return Ok(model);
-      }
-      else
-      {
-        return NotFound(new { message = "Item não encontrado" });
-      }
-    }
-    catch (DbUpdateConcurrencyException)
-    {
-      return BadRequest(new { message = "Item esta sendo atualizado neste momento, tente mais tarde" });
-    }
-    catch (Exception error)
-    {
-      return BadRequest(new { message = error.Message });
-    }
-  }
+        [HttpPost]
+        [Route("Post")]
+        public async Task<ActionResult<string>> Post(Fornecedor model)
+        {
+            var resp = await _services.Post(model);
 
+            return Ok(resp);
+        }
 
-  [HttpDelete]
-  [Route("{id:int}")]
-  public async Task<ActionResult<Fornecedor>> Delete(int id, [FromServices] DataContext context)
-  {
+        [HttpPut]
+        [Route("Put")]
+        public async Task<ActionResult<string>> Put(Fornecedor model)
+        {
+            var resp =  await _services.Put(model);
+            
+            return Ok(resp);
+        }
 
-    var item = await context.Fornecedores.FirstOrDefaultAsync(x => x.id == id);
-    if (item == null)
-    {
-      return NotFound("Item não encontrado");
+        [HttpDelete]
+        [Route("Delete")]
+        public async Task<ActionResult<string>> Delete(Fornecedor model)
+        {
+            var resp = await _services.Delete(model);
+
+            return Ok(resp);
+        }
     }
-
-    try
-    {
-      context.Fornecedores.Remove(item);
-      await context.SaveChangesAsync();
-      return Ok(new { message = "Transação Realizada" });
-    }
-    catch (Exception error)
-    {
-
-      return BadRequest(new { message = error.Message });
-    }
-  }
 }

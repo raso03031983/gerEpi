@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebApi.Models
+namespace Back.Models
 {
 
   [Table("Entradas")]

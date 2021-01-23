@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebApi.Models
+namespace Back.Models
 {
 
   [Table("Fornecedor")]
@@ -21,7 +21,7 @@ namespace WebApi.Models
     public string CNPJ { get; set; }
 
     [Required(ErrorMessage = "Cód. Cliente é Obrigatório")]
-    public int? id_cliente { get; set; }
+    public int id_cliente { get; set; }
 
   }
 }

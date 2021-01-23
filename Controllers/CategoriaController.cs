@@ -1,129 +1,57 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Back.Models;
+using Back.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using WebApi.Data;
-using WebApi.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-[Route("v1/categorias")]
-public class CategoriaController : Controller
+namespace Back.Controllers
 {
+    [Route("Categoria")]
+    [ApiController]
+    public class CategoriaController : Controller
+    {
+        private readonly ICategoriaServices _services;
 
-  // [Authorize]
-  [HttpGet]
-  [Route("{idCliente:int}")]
-  public async Task<ActionResult<List<Categoria>>> Get(int idCliente, [FromServices] DataContext context)
-  {
-    try
-    {
-      var item = await context.Categorias.Where(x => x.id_cliente == idCliente).AsNoTracking().ToListAsync();
-      return Ok(item);
-    }
-    catch (Exception error)
-    {
-      return BadRequest(error);
-    }
-  }
-
-  [HttpGet]
-  [Route("{id:int}/{idCliente:int}")]
-  public async Task<ActionResult<Categoria>> GetById(int id, int idCliente, [FromServices] DataContext context)
-  {
-    try
-    {
-      var item = await context.Categorias.AsNoTracking().FirstOrDefaultAsync(x => x.id == id && x.id_cliente == idCliente);
-      if (item == null)
-      {
-        return NotFound("Item não encontrado");
-      }
-      else
-      {
-        return Ok(item);
-      }
-    }
-    catch (Exception error)
-    {
-
-      return BadRequest(new { message = error.Message });
-    }
-
-  }
-
-  [HttpPost]
-  [Route("")]
-  public async Task<ActionResult<Categoria>> Post([FromBody] Categoria model, [FromServices] DataContext context)
-  {
-    if (!ModelState.IsValid)
-    {
-      return BadRequest(ModelState);
-    }
-    else
-    {
-      try
-      {
-        context.Categorias.Add(model);
-        await context.SaveChangesAsync();
-        return Ok(model);
-      }
-      catch (Exception error)
-      {
-        return BadRequest(new { message = error.Message });
-      }
-    }
-  }
-
-  [HttpPut]
-  [Route("{id:int}")]
-  public async Task<ActionResult<Categoria>> Put(int id, [FromBody] Categoria model, [FromServices] DataContext context)
-  {
-    try
-    {
-      if (model.id == id)
-      {
-        context.Entry<Categoria>(model).State = EntityState.Modified;
-        await context.SaveChangesAsync();
-        return Ok(model);
-      }
-      else
-      {
-        return NotFound(new { message = "Item não encontrado" });
-      }
-    }
-    catch (DbUpdateConcurrencyException)
-    {
-      return BadRequest(new { message = "Item esta sendo atualizado neste momento, tente mais tarde" });
-    }
-    catch (Exception error)
-    {
-      return BadRequest(new { message = error.Message });
-    }
-  }
+        public CategoriaController(ICategoriaServices services)
+        {
+            _services = services;
+        }
 
 
-  [HttpDelete]
-  [Route("{id:int}")]
-  public async Task<ActionResult<Categoria>> Delete(int id, [FromServices] DataContext context)
-  {
+        [HttpPost]
+        [Route("Get")]
+        public async Task<ActionResult<List<Categoria>>> Get(Categoria model)
+        {
+            var item = await _services.GetAll(model);
 
-    var item = await context.Categorias.FirstOrDefaultAsync(x => x.id == id);
-    if (item == null)
-    {
-      return NotFound("Item não encontrado");
-    }
+            return Ok(item);
+        }
 
-    try
-    {
-      context.Categorias.Remove(item);
-      await context.SaveChangesAsync();
-      return Ok(new { message = "Transação Realizada" });
-    }
-    catch (Exception error)
-    {
+        [HttpPost]
+        [Route("Post")]
+        public async Task<ActionResult<string>> Post(Categoria model)
+        {
+            var resp = await _services.Post(model);
 
-      return BadRequest(new { message = error.Message });
+            return Ok(resp);
+        }
+
+        [HttpPut]
+        [Route("Put")]
+        public async Task<ActionResult<string>> Put(Categoria model)
+        {
+            var resp =  await _services.Put(model);
+            
+            return Ok(resp);
+        }
+
+        [HttpDelete]
+        [Route("Delete/{id}")]
+        public async Task<ActionResult<string>> Delete(int id)
+        {
+            var resp = await _services.Delete(id);
+
+            return Ok(resp);
+        }
     }
-  }
 }

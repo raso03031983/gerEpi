@@ -1,6 +1,7 @@
-using System.Linq;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Back.Repository;
+using Back.Repository.Interface;
+using Back.Services;
+using Back.Services.Interface;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -8,128 +9,147 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Linq;
 using WebApi.Data;
 
-namespace WebApi
+namespace Back
 {
-  public class Startup
-  {
-    public Startup(IConfiguration configuration)
+    public class Startup
     {
-      Configuration = configuration;
-    }
-
-    public IConfiguration Configuration { get; }
-
-    // This method gets called by the runtime. Use this method to add services to the container.
-    public void ConfigureServices(IServiceCollection services)
-    {
-      services.AddCors();
-      services.AddResponseCompression(opt =>
-      {
-        opt.Providers.Add<GzipCompressionProvider>();
-        opt.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/json" });
-      });
-
-      //services.AddResponseCaching();
-
-      services.AddControllers();
-
-      var key = Encoding.ASCII.GetBytes(Settings.Secret);
-
-      services.AddAuthentication(x =>
-      {
-        x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-      }).AddJwtBearer(x =>
-      {
-        x.RequireHttpsMetadata = false;
-        x.SaveToken = true;
-        x.TokenValidationParameters = new TokenValidationParameters
+        public Startup(IConfiguration configuration)
         {
-          ValidateIssuerSigningKey = true,
-          IssuerSigningKey = new SymmetricSecurityKey(key),
-          ValidateIssuer = false,
-          ValidateAudience = false
-        };
-      });
+            Configuration = configuration;
+        }
 
-      //services.AddDbContext<DataContext>(opt => opt.UseInMemoryDatabase("Database"));
-      services.AddDbContext<DataContext>(opt => opt.UseSqlServer(Configuration.GetConnectionString("connectionStrings")));
-      services.AddControllersWithViews().AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
-      //Injeção de dependências
-      services.AddScoped<DataContext, DataContext>();
+        public IConfiguration Configuration { get; }
 
-      services.AddSwaggerGen(c =>
-      {
-        c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "API GER_EPI", Version = "V1" });
-
-        // c.AddSecurityDefinition("basic", new OpenApiSecurityScheme
-        // {
-        //   Name = "Authorization",
-        //   Type = SecuritySchemeType.Http,
-        //   Scheme = "basic",
-        //   In = ParameterLocation.Header,
-        //   Description = "Basic Authorization header using the Bearer scheme."
-        // });
-
-        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        // This method gets called by the runtime. Use this method to add services to the container.
+        public void ConfigureServices(IServiceCollection services)
         {
-          In = ParameterLocation.Header,
-          Description = "Please insert JWT with Bearer into field",
-          Name = "Authorization",
-          Type = SecuritySchemeType.ApiKey
-        });
-        c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-        {
-          new OpenApiSecurityScheme
-          {
-            Reference = new OpenApiReference
+
+            services.AddCors();
+
+            services.AddResponseCompression(opt =>
             {
-              Type = ReferenceType.SecurityScheme,
-              Id = "Bearer"
+                opt.Providers.Add<GzipCompressionProvider>();
+                opt.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/json" });
+            });
+
+            services.AddControllers();
+
+            services.AddControllers().AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "API GER_EPI", Version = "V1" });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please insert JWT with Bearer into field",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                {
+                  new OpenApiSecurityScheme
+                  {
+                    Reference = new OpenApiReference
+                    {
+                      Type = ReferenceType.SecurityScheme,
+                      Id = "Bearer"
+                    }
+                    },
+                    new string[] { }
+                  }
+                    });
+            });
+
+            services.AddDbContext<DataContext>(options => options.UseSqlServer(Configuration.GetConnectionString("connectionStrings")));
+
+            services.AddScoped<DataContext, DataContext>();
+
+            services.AddTransient<ICargoServices, CargoServices>();
+            services.AddTransient<ICargoRepository, CargoRepository>();
+
+            services.AddTransient<ICategoriaServices, CategoriaServices>();
+            services.AddTransient<ICategoriaRepository, CategoriaRepository>();
+
+            services.AddTransient<ICentro_CustoServices, Centro_CustoServices>();
+            services.AddTransient<ICentro_CustoRepository, Centro_CustoRepository>();
+
+            services.AddTransient<IClassificacaoServices, ClassificacaoServices>();
+            services.AddTransient<IClassificacaoRepository, ClassificacaoRepository>();
+
+            services.AddTransient<IClassificacaoServices, ClassificacaoServices>();
+            services.AddTransient<IClassificacaoRepository, ClassificacaoRepository>();
+
+            services.AddTransient<IDivisaoServices, DivisaoServices>();
+            services.AddTransient<IDivisaoRepository, DivisaoRepository>();
+            
+            services.AddTransient<IEmpresaServices, EmpresaServices>();
+            services.AddTransient<IEmpresaRepository, EmpresaRepository>();
+
+            services.AddTransient<IEntradaServices, EntradaServices>();
+            services.AddTransient<IEntradaRepository, EntradaRepository>();
+
+            services.AddTransient<IFamiliaServices, FamiliaServices>();
+            services.AddTransient<IFamiliaRepository, FamiliaRepository>();
+
+            services.AddTransient<IFornecedorServices, FornecedorServices>();
+            services.AddTransient<IFornecedorRepository, FornecedorRepository>();
+
+            services.AddTransient<IEntrega_MobileServices, Entrega_MobileServices>();
+            services.AddTransient<IEntrega_MobileRepository, Entrega_MobileRepository>();
+
+            services.AddTransient<IEPI_EntregueServices, EPI_EntregueServices>();
+            services.AddTransient<IEPI_EntregueRepository, EPI_EntregueRepository>();
+
+            services.AddTransient<IEquipamentoServices, EquipamentoServices>();
+            services.AddTransient<IEquipamentoRepository, EquipamentoRepository>();
+
+            services.AddTransient<IGrade_TamanhoServices, Grade_TamanhoServices>();
+            services.AddTransient<IGrade_TamanhoRepository, Grade_TamanhoRepository>();
+
+            services.AddTransient<IGSEServices, GSEServices>();
+            services.AddTransient<IGSERepository, GSERepository>();
+
+            services.AddTransient<IIntegranteServices, IntegranteServices>();
+            services.AddTransient<IIntegranteRepository, IntegranteRepository>();
+
+            services.AddTransient<IIntegranteBiometriaServices, IntegranteBiometriaServices>();
+            services.AddTransient<IIntegranteBiometriaRepository, IntegranteBiometriaRepository>();
+
+            services.AddTransient<ILocalServices, LocalServices>();
+            services.AddTransient<ILocalRepository, LocalRepository>();
+        }
+
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
             }
-            },
-            new string[] { }
-          }
-        });
 
-        // var securityRequirement = new OpenApiSecurityRequirement();
-        // securityRequirement.Add(securitySchema, new[] { "Bearer" });
-        // c.AddSecurityRequirement(securityRequirement);
-      });
+            app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
+            app.UseHttpsRedirection();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.RoutePrefix = "swagger";
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Demo JWT Api");
+            });
+        }
     }
-
-    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-      if (env.IsDevelopment())
-      {
-        app.UseDeveloperExceptionPage();
-      }
-
-      app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-
-      app.UseHttpsRedirection();
-
-      app.UseSwagger();
-      app.UseSwaggerUI(c =>
-      {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "GER-EPI V1");
-      });
-
-      app.UseRouting();
-
-      app.UseAuthentication();
-
-      app.UseAuthorization();
-
-      app.UseEndpoints(endpoints =>
-      {
-        endpoints.MapControllers();
-      });
-    }
-  }
 }

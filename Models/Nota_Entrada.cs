@@ -2,26 +2,26 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebApi.Models
+namespace Back.Models
 {
 
-  [Table("Nota_Entrada")]
-  public class Nota_Entrada
-  {
-    [Key]
-    [Column("ID_Nota_Entrada")]
-    public int id { get; set; }
+    [Table("Nota_Entrada")]
+    public class Nota_Entrada
+    {
+        [Key]
+        [Column("ID_Nota_Entrada")]
+        public int id { get; set; }
 
-    // [Required(ErrorMessage = "DescriÃ§Ã£o Categoria Ã© ObrigatÃ³rio")]
-    [MaxLength(20, ErrorMessage = "MÃ¡ximo de 20 caracteres")]
-    public string Numero_NF { get; set; }
+        // [Required(ErrorMessage = "Descrição Categoria é Obrigatório")]
+        [MaxLength(20, ErrorMessage = "Máximo de 20 caracteres")]
+        public string Numero_NF { get; set; }
 
-    public DateTime? Data_NF { get; set; }
+        public DateTime? Data_NF { get; set; }
 
-    public int? ID_Fornecedor { get; set; }
+        public int? ID_Fornecedor { get; set; }
 
-    [Required(ErrorMessage = "CÃ³d. Cliente Ã© ObrigatÃ³rio")]
-    public int? id_cliente { get; set; }
+        [Required(ErrorMessage = "Cód. Cliente é Obrigatório")]
+        public int? id_cliente { get; set; }
 
-  }
+    }
 }

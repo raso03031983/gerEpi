@@ -1,129 +1,61 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Back.Models;
+using Back.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using WebApi.Data;
-using WebApi.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-[Route("v1/locais")]
-public class LocalController : Controller
+namespace Back.Controllers
 {
+    [Route("Local")]
+    [ApiController]
+    public class LocalController : Controller
+    {
+        private readonly ILocalServices _services;
 
-  // [Authorize]
-  [HttpGet]
-  [Route("{idCliente:int}")]
-  public async Task<ActionResult<List<Local>>> Get(int idCliente, [FromServices] DataContext context)
-  {
-    try
-    {
-      var item = await context.Locais.Where(x => x.id_cliente == idCliente).AsNoTracking().ToListAsync();
-      return Ok(item);
-    }
-    catch (Exception error)
-    {
-      return BadRequest(error);
-    }
-  }
+        public LocalController(ILocalServices services)
+        {
+            _services = services;
+        }
 
-  [HttpGet]
-  [Route("GetById/{id:int}/{idCliente:int}")]
-  public async Task<ActionResult<Local>> GetById(int id, int idCliente, [FromServices] DataContext context)
-  {
-    try
-    {
-      var item = await context.Locais.AsNoTracking().FirstOrDefaultAsync(x => x.id == id && x.id_cliente == idCliente);
-      if (item == null)
-      {
-        return NotFound("Item não encontrado");
-      }
-      else
-      {
-        return Ok(item);
-      }
-    }
-    catch (Exception error)
-    {
+        [HttpPost]
+        [Route("Get")]
+        public async Task<ActionResult<List<Local>>> Get(Local model)
+        {
 
-      return BadRequest(new { message = error.Message });
-    }
+            if (model.id_cliente < 1) {
+                return NotFound("Código Cliente é obrigatório");
+            }
 
-  }
+            var item = await _services.GetAll(model);
 
-  [HttpPost]
-  [Route("")]
-  public async Task<ActionResult<Local>> Post([FromBody] Local model, [FromServices] DataContext context)
-  {
-    if (!ModelState.IsValid)
-    {
-      return BadRequest(ModelState);
-    }
-    else
-    {
-      try
-      {
-        context.Locais.Add(model);
-        await context.SaveChangesAsync();
-        return Ok(model);
-      }
-      catch (Exception error)
-      {
-        return BadRequest(new { message = error.Message });
-      }
-    }
-  }
+            return Ok(item);
+        }
 
-  [HttpPut]
-  [Route("{id:int}")]
-  public async Task<ActionResult<Local>> Put(int id, [FromBody] Local model, [FromServices] DataContext context)
-  {
-    try
-    {
-      if (model.id == id)
-      {
-        context.Entry<Local>(model).State = EntityState.Modified;
-        await context.SaveChangesAsync();
-        return Ok(model);
-      }
-      else
-      {
-        return NotFound(new { message = "Item não encontrado" });
-      }
-    }
-    catch (DbUpdateConcurrencyException)
-    {
-      return BadRequest(new { message = "Item esta sendo atualizado neste momento, tente mais tarde" });
-    }
-    catch (Exception error)
-    {
-      return BadRequest(new { message = error.Message });
-    }
-  }
+        [HttpPost]
+        [Route("Post")]
+        public async Task<ActionResult<string>> Post(Local model)
+        {
+            var resp = await _services.Post(model);
 
+            return Ok(resp);
+        }
 
-  [HttpDelete]
-  [Route("{id:int}")]
-  public async Task<ActionResult<Local>> Delete(int id, [FromServices] DataContext context)
-  {
+        [HttpPut]
+        [Route("Put")]
+        public async Task<ActionResult<string>> Put(Local model)
+        {
+            var resp =  await _services.Put(model);
+            
+            return Ok(resp);
+        }
 
-    var item = await context.Locais.FirstOrDefaultAsync(x => x.id == id);
-    if (item == null)
-    {
-      return NotFound("Item não encontrado");
+        [HttpDelete]
+        [Route("Delete/{id}")]
+        public async Task<ActionResult<string>> Delete(int id)
+        {
+            var resp = await _services.Delete(id);
+
+            return Ok(resp);
+        }
     }
-
-    try
-    {
-      context.Locais.Remove(item);
-      await context.SaveChangesAsync();
-      return Ok(new { message = "Transação Realizada" });
-    }
-    catch (Exception error)
-    {
-
-      return BadRequest(new { message = error.Message });
-    }
-  }
 }

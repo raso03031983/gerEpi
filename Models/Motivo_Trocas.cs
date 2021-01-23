@@ -1,22 +1,22 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebApi.Models
+namespace Back.Models
 {
 
-  [Table("Motivo_Troca")]
-  public class Motivo_Trocas
-  {
-    [Key]
-    [Column("ID_Motivo_Troca")]
-    public int id { get; set; }
+    [Table("Motivo_Troca")]
+    public class Motivo_Trocas
+    {
+        [Key]
+        [Column("ID_Motivo_Troca")]
+        public int id { get; set; }
 
-    // [Required(ErrorMessage = "DescriÃ§Ã£o Categoria Ã© ObrigatÃ³rio")]
-    [MaxLength(100, ErrorMessage = "MÃ¡ximo de 100 caracteres")]
-    public string Motivo_Troca { get; set; }
+        // [Required(ErrorMessage = "Descrição Categoria é Obrigatório")]
+        [MaxLength(100, ErrorMessage = "Máximo de 100 caracteres")]
+        public string Motivo_Troca { get; set; }
 
-    [Required(ErrorMessage = "CÃ³d. Cliente Ã© ObrigatÃ³rio")]
-    public int? id_cliente { get; set; }
+        [Required(ErrorMessage = "Cód. Cliente é Obrigatório")]
+        public int? id_cliente { get; set; }
 
-  }
+    }
 }
